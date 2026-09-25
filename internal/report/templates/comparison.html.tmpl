@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSA capacity comparison</title>
+<style>{{template "style"}}</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="head">
+  <div>
+    <p class="eyebrow">Executive summary</p>
+    <h1>Timestamp service capacity comparison</h1>
+    <p class="sub">{{len .Comparison.Entries}} provider(s) · generated {{utc .Comparison.GeneratedAt}}</p>
+  </div>
+  <div class="badges">
+    {{if .Comparison.AnyLive}}<span class="badge badge-live">LIVE PRODUCTION</span>{{end}}
+  </div>
+</header>
+
+<section class="callout callout-warn">
+  <h2>Read this first</h2>
+  <ul>
+    <li>Each provider was measured over a bounded window at a fixed target rate — the headline figure below
+        names the stage it came from. This is <strong>not</strong> a guarantee of sustained production capacity.</li>
+    <li>A run marked <em>client bottleneck</em> reports a lower bound on that provider's capacity, not a
+        measurement of it.</li>
+    <li>Success means the complete RFC 3161 acceptance chain passed — status, content type, PKIStatus, nonce,
+        imprint, CMS signature, certificate chain, timeStamping key usage and genTime skew. An HTTP 200 alone
+        is never counted as success.</li>
+    {{if .Comparison.AnyLive}}
+    <li>At least one target was a live production service shared with real customer traffic, so concurrent
+        third-party load is an uncontrolled variable.</li>
+    {{end}}
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Side by side</h2>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Measure</th>
+        {{range .Comparison.Entries}}<th class="n">{{.Provider}}</th>{{end}}
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Environment</td>
+        {{range .Comparison.Entries}}<td class="n">{{if eq .Environment "live"}}<span class="badge badge-live">LIVE</span>{{else}}test{{end}}</td>{{end}}</tr>
+      <tr><td>Headline stage</td>
+        {{range .Comparison.Entries}}<td class="n mono">{{.SustainedStage}}</td>{{end}}</tr>
+      <tr><td>Target rate at that stage</td>
+        {{range .Comparison.Entries}}<td class="n">{{pct2 .SustainedTPS}} TPS for {{secs .SustainedSeconds}}</td>{{end}}</tr>
+      <tr><td><strong>Achieved rate (whole run)</strong></td>
+        {{range .Comparison.Entries}}<td class="n"><strong>{{pct2 .AchievedTPS}} TPS</strong></td>{{end}}</tr>
+      <tr><td><strong>Success rate</strong></td>
+        {{range .Comparison.Entries}}<td class="n {{rateClass .SuccessRate}}"><strong>{{pct .SuccessRate}}</strong></td>{{end}}</tr>
+      <tr><td>Timeout rate</td>
+        {{range .Comparison.Entries}}<td class="n">{{pct .TimeoutRate}}</td>{{end}}</tr>
+      <tr><td>Total requests sent</td>
+        {{range .Comparison.Entries}}<td class="n">{{.TotalRequests}}</td>{{end}}</tr>
+      <tr><td>Verified</td>
+        {{range .Comparison.Entries}}<td class="n">{{.Verified}}</td>{{end}}</tr>
+      <tr><td>Failed</td>
+        {{range .Comparison.Entries}}<td class="n">{{.Failed}}</td>{{end}}</tr>
+      <tr><td>Latency min</td>
+        {{range .Comparison.Entries}}<td class="n">{{ms2 .MinMS}} ms</td>{{end}}</tr>
+      <tr><td>Latency mean</td>
+        {{range .Comparison.Entries}}<td class="n">{{ms2 .MeanMS}} ms</td>{{end}}</tr>
+      <tr><td>Latency p95</td>
+        {{range .Comparison.Entries}}<td class="n">{{ms2 .P95MS}} ms</td>{{end}}</tr>
+      <tr><td>Latency p99</td>
+        {{range .Comparison.Entries}}<td class="n">{{ms2 .P99MS}} ms</td>{{end}}</tr>
+      <tr><td>Latency max</td>
+        {{range .Comparison.Entries}}<td class="n">{{ms2 .MaxMS}} ms</td>{{end}}</tr>
+      <tr><td>Client bottleneck observed</td>
+        {{range .Comparison.Entries}}<td class="n">{{if .ClientBottleneck}}<span class="bad">yes</span>{{else}}<span class="good">no</span>{{end}}</td>{{end}}</tr>
+      <tr><td>Run completed</td>
+        {{range .Comparison.Entries}}<td class="n">{{if .Partial}}<span class="mid">partial — {{.StopReason}}</span>{{else}}yes{{end}}</td>{{end}}</tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+{{if .ErrorClasses}}
+<section class="card">
+  <h2>Error distribution</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Error class</th>{{range .Comparison.Entries}}<th class="n">{{.Provider}}</th>{{end}}</tr></thead>
+    <tbody>
+      {{$m := .ErrorMatrix}}{{$entries := .Comparison.Entries}}
+      {{range $class := .ErrorClasses}}
+      <tr>
+        <td class="mono">{{$class}}</td>
+        {{range $e := $entries}}<td class="n">{{index (index $m $class) $e.Provider}}</td>{{end}}
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  </div>
+</section>
+{{end}}
+
+<section class="card">
+  <h2>Client bottleneck detail</h2>
+  <dl class="grid">
+    {{range .Comparison.Entries}}
+    <div>
+      <dt>{{.Provider}}</dt>
+      <dd>{{if .ClientBottleneck}}{{.BottleneckDetail}}{{else}}No client-side saturation detected.{{end}}</dd>
+    </div>
+    {{end}}
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Method and limitations</h2>
+  <ul class="notes">{{range .Comparison.Notes}}<li>{{.}}</li>{{end}}</ul>
+  <h3>Limitations</h3>
+  <ul class="notes">{{range .Comparison.Limitations}}<li>{{.}}</li>{{end}}</ul>
+</section>
+
+<section class="card">
+  <h2>Source runs</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Provider</th><th>Run ID</th><th>Started (UTC)</th><th>Duration</th><th>Directory</th></tr></thead>
+    <tbody>
+    {{range .Comparison.Entries}}
+      <tr>
+        <td>{{.Provider}}</td>
+        <td class="mono">{{.RunID}}</td>
+        <td class="mono">{{utc .StartedAt}}</td>
+        <td>{{secs .DurationS}}</td>
+        <td class="mono">{{.Directory}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

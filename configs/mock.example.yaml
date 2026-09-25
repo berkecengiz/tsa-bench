@@ -1,0 +1,49 @@
+# Local mock responder — for verifying the tool itself, never a provider.
+#
+#   tsa-bench mock --addr 127.0.0.1:8318 --write-ca /tmp/mock-ca.pem
+#   tsa-bench validate --config configs/mock.example.yaml
+#
+# Point tsa_ca_file at the CA the mock wrote, otherwise every response is
+# correctly rejected as untrusted_certificate.
+
+provider:
+  name: mock
+  endpoint: "http://127.0.0.1:8318/"
+  environment: test
+  auth:
+    type: none
+
+tls:
+  ca_file: ""
+  tsa_ca_file: "/tmp/mock-ca.pem"
+  client_cert_file: ""
+  client_key_file: ""
+  server_name: ""
+  insecure_skip_verify: false
+  min_version: "1.2"
+
+request:
+  hash_algorithm: sha256
+  payload_size: 64
+  timeout: 10s
+  cert_req: true
+  max_clock_skew: 60s
+  policy_oid: ""
+  require_ess: false
+
+load:
+  max_concurrency: 500
+  stage_pause: 1s
+  lag_threshold: 250ms
+  grace_period: 15s
+
+limits:
+  max_requests: 48600
+  hard_cap: 50000
+  retries: 0
+  abort_on_error_rate: 0.25
+  abort_window: 200
+  abort_on_consecutive_failures: 50
+
+output:
+  directory: results

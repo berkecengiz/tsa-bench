@@ -1,0 +1,52 @@
+# 50,000 timestamp engagement profile.
+#
+# Quota arithmetic — this must always hold:
+#
+#   functional    100 sequential requests            =    100
+#   ramp-25        25 TPS x  20 s                    =    500
+#   ramp-50        50 TPS x  20 s                    =  1,000
+#   ramp-100      100 TPS x  20 s                    =  2,000
+#   sustained-150 150 TPS x 300 s                    = 45,000
+#                                                     -------
+#   planned                                            48,600
+#   reserve (error repetition + operational headroom)   1,400
+#                                                     -------
+#   total against the 50,000 quota                     50,000
+#
+# The tool refuses to start if the planned total exceeds --max-requests or the
+# configured hard cap, and the atomic quota counter enforces the ceiling at
+# runtime regardless of what this file says.
+name: 50k
+note: >-
+  Standard engagement profile: functional validation, a three-step ramp, then
+  five minutes at a sustained 150 TPS. 1,400 requests are held back as reserve
+  and are never sent by this profile.
+
+reserve: 1400
+
+stages:
+  # Prove the full verification chain works before spending quota on load.
+  # If these 100 fail, running the remaining 48,500 would waste the allowance.
+  - name: functional
+    mode: sequential
+    count: 100
+
+  - name: ramp-25
+    mode: rate
+    tps: 25
+    duration: 20s
+
+  - name: ramp-50
+    mode: rate
+    tps: 50
+    duration: 20s
+
+  - name: ramp-100
+    mode: rate
+    tps: 100
+    duration: 20s
+
+  - name: sustained-150
+    mode: rate
+    tps: 150
+    duration: 300s

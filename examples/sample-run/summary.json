@@ -1,0 +1,411 @@
+{
+  "schema": "tsa-bench/v1",
+  "metadata": {
+    "schema": "tsa-bench/v1",
+    "run_id": "c4280728e4c4",
+    "tool": "tsa-bench",
+    "version": "c1e16e0-dirty",
+    "go_version": "go1.27.1",
+    "os": "darwin",
+    "arch": "arm64",
+    "hostname": "[REDACTED]",
+    "started_at": "2026-09-25T10:01:00.419886+03:00",
+    "ended_at": "2026-09-25T10:01:23.415571+03:00",
+    "command_line": "[REDACTED]",
+    "provider": {
+      "name": "mock",
+      "endpoint_redacted": "http://127.0.0.1:8319/",
+      "environment": "test",
+      "auth_type": "none"
+    },
+    "profile_name": "demo",
+    "profile_note": "Rate ladder against the local mock responder, for demonstration only. The latencies are those of a local signature and do not describe any provider.",
+    "request": {
+      "hash_algorithm": "sha256",
+      "payload_size_bytes": 64,
+      "cert_req": true,
+      "timeout_ms": 10000,
+      "max_clock_skew_seconds": 60,
+      "require_ess": false
+    },
+    "load": {
+      "max_concurrency": 500,
+      "stage_pause_seconds": 1,
+      "lag_threshold_ms": 250,
+      "grace_period_seconds": 15
+    },
+    "quota": {
+      "max_requests": 3000,
+      "hard_cap": 50000,
+      "profile_planned": 2800,
+      "profile_reserve": 0,
+      "retries": 0
+    },
+    "tls": {
+      "min_version": "1.2",
+      "insecure_skip_verify": false,
+      "tsa_trust_source": "mock-ca.pem"
+    }
+  },
+  "stop_reason": "completed",
+  "partial": false,
+  "duration_seconds": 22.995771,
+  "quota_used": 2800,
+  "auth_requests": 0,
+  "quota_budget": 3000,
+  "quota_remaining": 200,
+  "stages": [
+    {
+      "name": "functional",
+      "target_tps": 0,
+      "planned_requests": 50,
+      "sent_requests": 50,
+      "completed_requests": 50,
+      "verified_requests": 50,
+      "failed_requests": 0,
+      "timeout_requests": 0,
+      "success_rate": 1,
+      "timeout_rate": 0,
+      "duration_seconds": 0.023532,
+      "actual_send_tps": 2082.2709501954782,
+      "completed_tps": 2124.766275709672,
+      "latency_total": {
+        "count": 50,
+        "min_ms": 0.381,
+        "mean_ms": 0.476353,
+        "p50_ms": 0.419839,
+        "p90_ms": 0.527359,
+        "p95_ms": 0.598015,
+        "p99_ms": 2.150399,
+        "max_ms": 2.149792,
+        "overflows": 0
+      },
+      "latency_network": {
+        "count": 50,
+        "min_ms": 0.152875,
+        "mean_ms": 0.221305,
+        "p50_ms": 0.181887,
+        "p90_ms": 0.224255,
+        "p95_ms": 0.296191,
+        "p99_ms": 1.697791,
+        "max_ms": 1.696791,
+        "overflows": 0
+      },
+      "latency_verification": {
+        "count": 50,
+        "min_ms": 0.192791,
+        "mean_ms": 0.247731,
+        "p50_ms": 0.241407,
+        "p90_ms": 0.287487,
+        "p95_ms": 0.325887,
+        "p99_ms": 0.437247,
+        "max_ms": 0.437208,
+        "overflows": 0
+      },
+      "schedule_lag": {
+        "count": 50,
+        "min_ms": 0,
+        "mean_ms": 0,
+        "p50_ms": 0,
+        "p90_ms": 0,
+        "p95_ms": 0,
+        "p99_ms": 0,
+        "max_ms": 0,
+        "overflows": 0
+      },
+      "client_saturation_events": 0,
+      "errors": [
+        {
+          "class": "ok",
+          "count": 50,
+          "share": 1
+        }
+      ]
+    },
+    {
+      "name": "ramp-50",
+      "target_tps": 50,
+      "planned_requests": 250,
+      "sent_requests": 250,
+      "completed_requests": 250,
+      "verified_requests": 250,
+      "failed_requests": 0,
+      "timeout_requests": 0,
+      "success_rate": 1,
+      "timeout_rate": 0,
+      "duration_seconds": 4.980529,
+      "actual_send_tps": 49.99468931914662,
+      "completed_tps": 50.19547120396247,
+      "latency_total": {
+        "count": 250,
+        "min_ms": 0.532292,
+        "mean_ms": 1.295219,
+        "p50_ms": 1.286143,
+        "p90_ms": 1.552383,
+        "p95_ms": 1.644543,
+        "p99_ms": 2.377727,
+        "max_ms": 3.7085,
+        "overflows": 0
+      },
+      "latency_network": {
+        "count": 250,
+        "min_ms": 0.236625,
+        "mean_ms": 0.545767,
+        "p50_ms": 0.526847,
+        "p90_ms": 0.674815,
+        "p95_ms": 0.752639,
+        "p99_ms": 1.273855,
+        "max_ms": 2.499875,
+        "overflows": 0
+      },
+      "latency_verification": {
+        "count": 250,
+        "min_ms": 0.236167,
+        "mean_ms": 0.637945,
+        "p50_ms": 0.661503,
+        "p90_ms": 0.735743,
+        "p95_ms": 0.775679,
+        "p99_ms": 1.171455,
+        "max_ms": 2.458166,
+        "overflows": 0
+      },
+      "schedule_lag": {
+        "count": 250,
+        "min_ms": 0.001375,
+        "mean_ms": 0.913666,
+        "p50_ms": 1.046015,
+        "p90_ms": 1.076223,
+        "p95_ms": 1.083391,
+        "p99_ms": 1.131519,
+        "max_ms": 1.297792,
+        "overflows": 0
+      },
+      "client_saturation_events": 0,
+      "errors": [
+        {
+          "class": "ok",
+          "count": 250,
+          "share": 1
+        }
+      ]
+    },
+    {
+      "name": "ramp-100",
+      "target_tps": 100,
+      "planned_requests": 500,
+      "sent_requests": 500,
+      "completed_requests": 500,
+      "verified_requests": 500,
+      "failed_requests": 0,
+      "timeout_requests": 0,
+      "success_rate": 1,
+      "timeout_rate": 0,
+      "duration_seconds": 4.990757,
+      "actual_send_tps": 99.98483196036192,
+      "completed_tps": 100.1852023650921,
+      "latency_total": {
+        "count": 500,
+        "min_ms": 0.41925,
+        "mean_ms": 1.038671,
+        "p50_ms": 0.997375,
+        "p90_ms": 1.242111,
+        "p95_ms": 1.321983,
+        "p99_ms": 1.752063,
+        "max_ms": 11.768791,
+        "overflows": 0
+      },
+      "latency_network": {
+        "count": 500,
+        "min_ms": 0.161958,
+        "mean_ms": 0.42481,
+        "p50_ms": 0.386559,
+        "p90_ms": 0.510463,
+        "p95_ms": 0.561151,
+        "p99_ms": 0.802303,
+        "max_ms": 9.28175,
+        "overflows": 0
+      },
+      "latency_verification": {
+        "count": 500,
+        "min_ms": 0.228667,
+        "mean_ms": 0.555991,
+        "p50_ms": 0.539647,
+        "p90_ms": 0.686079,
+        "p95_ms": 0.709631,
+        "p99_ms": 1.124351,
+        "max_ms": 6.426458,
+        "overflows": 0
+      },
+      "schedule_lag": {
+        "count": 500,
+        "min_ms": 0.000958,
+        "mean_ms": 0.967413,
+        "p50_ms": 1.052671,
+        "p90_ms": 1.072127,
+        "p95_ms": 1.091583,
+        "p99_ms": 1.216511,
+        "max_ms": 8.320333,
+        "overflows": 0
+      },
+      "client_saturation_events": 0,
+      "errors": [
+        {
+          "class": "ok",
+          "count": 500,
+          "share": 1
+        }
+      ]
+    },
+    {
+      "name": "hold-200",
+      "target_tps": 200,
+      "planned_requests": 2000,
+      "sent_requests": 2000,
+      "completed_requests": 2000,
+      "verified_requests": 2000,
+      "failed_requests": 0,
+      "timeout_requests": 0,
+      "success_rate": 1,
+      "timeout_rate": 0,
+      "duration_seconds": 9.995525,
+      "actual_send_tps": 199.98949529914634,
+      "completed_tps": 200.08954006918094,
+      "latency_total": {
+        "count": 2000,
+        "min_ms": 0.401,
+        "mean_ms": 0.924704,
+        "p50_ms": 0.931839,
+        "p90_ms": 1.116159,
+        "p95_ms": 1.212415,
+        "p99_ms": 1.598463,
+        "max_ms": 4.927,
+        "overflows": 0
+      },
+      "latency_network": {
+        "count": 2000,
+        "min_ms": 0.148041,
+        "mean_ms": 0.339412,
+        "p50_ms": 0.321279,
+        "p90_ms": 0.424703,
+        "p95_ms": 0.483583,
+        "p99_ms": 0.818175,
+        "max_ms": 2.213959,
+        "overflows": 0
+      },
+      "latency_verification": {
+        "count": 2000,
+        "min_ms": 0.204041,
+        "mean_ms": 0.545896,
+        "p50_ms": 0.571903,
+        "p90_ms": 0.659455,
+        "p95_ms": 0.689151,
+        "p99_ms": 1.001471,
+        "max_ms": 3.325792,
+        "overflows": 0
+      },
+      "schedule_lag": {
+        "count": 2000,
+        "min_ms": 0.001084,
+        "mean_ms": 0.515058,
+        "p50_ms": 0.556031,
+        "p90_ms": 0.589823,
+        "p95_ms": 0.610303,
+        "p99_ms": 0.638463,
+        "max_ms": 2.405667,
+        "overflows": 0
+      },
+      "client_saturation_events": 0,
+      "errors": [
+        {
+          "class": "ok",
+          "count": 2000,
+          "share": 1
+        }
+      ]
+    }
+  ],
+  "overall": {
+    "name": "overall",
+    "target_tps": 0,
+    "planned_requests": 0,
+    "sent_requests": 2800,
+    "completed_requests": 2800,
+    "verified_requests": 2800,
+    "failed_requests": 0,
+    "timeout_requests": 0,
+    "success_rate": 1,
+    "timeout_rate": 0,
+    "duration_seconds": 22.994554,
+    "actual_send_tps": 121.72447441250654,
+    "completed_tps": 121.76796297071037,
+    "latency_total": {
+      "count": 2800,
+      "min_ms": 0.381,
+      "mean_ms": 0.970131,
+      "p50_ms": 0.952319,
+      "p90_ms": 1.245183,
+      "p95_ms": 1.393663,
+      "p99_ms": 1.681407,
+      "max_ms": 11.768791,
+      "overflows": 0
+    },
+    "latency_network": {
+      "count": 2800,
+      "min_ms": 0.148041,
+      "mean_ms": 0.370977,
+      "p50_ms": 0.337151,
+      "p90_ms": 0.504319,
+      "p95_ms": 0.604671,
+      "p99_ms": 0.854015,
+      "max_ms": 9.28175,
+      "overflows": 0
+    },
+    "latency_verification": {
+      "count": 2800,
+      "min_ms": 0.192791,
+      "mean_ms": 0.550593,
+      "p50_ms": 0.575999,
+      "p90_ms": 0.677375,
+      "p95_ms": 0.710143,
+      "p99_ms": 1.064959,
+      "max_ms": 6.426458,
+      "overflows": 0
+    },
+    "schedule_lag": {
+      "count": 2800,
+      "min_ms": 0,
+      "mean_ms": 0.622228,
+      "p50_ms": 0.562687,
+      "p90_ms": 1.056767,
+      "p95_ms": 1.065983,
+      "p99_ms": 1.098751,
+      "max_ms": 8.320333,
+      "overflows": 0
+    },
+    "client_saturation_events": 0,
+    "errors": [
+      {
+        "class": "ok",
+        "count": 2800,
+        "share": 1
+      }
+    ]
+  },
+  "resource_peak": {
+    "max_goroutines": 9,
+    "max_rss_mb": 29.546875,
+    "max_cpu_percent": 19.949388580757912,
+    "max_in_flight": 1,
+    "max_conns_open": 2
+  },
+  "client_bottleneck_observed": false,
+  "notes": [
+    "Percentiles come from a fixed-size HDR-style histogram with 3 significant figures: each reported value is the upper bound of a bucket at most 1/2048 (about 0.05%) wide. Minimum, maximum and mean are exact.",
+    "Requests are issued on an open-loop constant-arrival-rate schedule: request n is due at start + n/rate regardless of when request n-1 finished. This avoids coordinated omission, where a closed-loop client stops issuing requests while the server is slow and so never measures the latency its own backlog would have seen. Any inability to hold the schedule is reported as schedule lag and client saturation rather than being absorbed into a quietly lower rate."
+  ],
+  "limitations": [
+    "Results describe the service during this test window only. A live TSA is shared with real customer traffic, so the same test at another time may produce different numbers.",
+    "The highest sustained rate exercised is bounded by the profile; a stage that was not run says nothing about behaviour at that rate.",
+    "Certificate revocation (CRL/OCSP) is not checked during the run; doing so would add network traffic that would distort the latency measurement."
+  ]
+}

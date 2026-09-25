@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mock — RFC 3161 capacity test</title>
+<style>
+:root{
+  --bg:#fbfbfa; --panel:#fff; --ink:#1a1a18; --muted:#6b6b66; --line:#e4e4e0;
+  --accent:#2f5d50; --ok:#2f6f4f; --warn:#8a5a12; --danger:#9b2c2c;
+  --grid:#eeeeea; --bar:#c9d6d0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --panel:#1e2024; --ink:#e9e9e6; --muted:#9a9a94; --line:#2e3137;
+    --accent:#7fb8a4; --ok:#7fc3a0; --warn:#d8a95a; --danger:#e08585;
+    --grid:#282b30; --bar:#33413b;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px;padding-left:20px;padding-right:20px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+h1{font-size:28px;margin:.15em 0 .1em;letter-spacing:-.02em}
+h2{font-size:15px;margin:0 0 14px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+h3{font-size:14px;margin:20px 0 8px}
+.eyebrow{margin:0;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.sub{margin:0;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;word-break:break-all}
+.head{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start;
+  padding-bottom:20px;border-bottom:2px solid var(--line);margin-bottom:24px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:3px;
+  font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);background:var(--panel)}
+.badge-live{color:#fff;background:var(--danger);border-color:var(--danger)}
+.badge-warn{color:var(--warn);border-color:var(--warn)}
+.badge-danger{color:#fff;background:var(--danger);border-color:var(--danger)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px;margin-bottom:18px}
+.callout{border-radius:6px;padding:16px 20px;margin-bottom:18px;border:1px solid var(--warn)}
+.callout-warn{background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.callout ul{margin:0;padding-left:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kpi-value{font-size:24px;font-weight:650;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums}
+.kpi-value small{font-size:13px;font-weight:400;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 22px;margin:0}
+.grid div{min-width:0}
+dt{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+dd{margin:2px 0 0;word-break:break-word}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right}
+tbody tr:last-child td{border-bottom:none}
+.good{color:var(--ok)} .mid{color:var(--warn)} .bad{color:var(--danger)}
+.bar{display:block;height:9px;background:var(--bar);border-radius:2px;min-width:1px}
+.verdict{margin:0 0 10px;font-size:15px;font-weight:600}
+.verdict-ok{color:var(--ok)} .verdict-warn{color:var(--warn)}
+.detail{color:var(--muted);font-size:12.5px;margin:10px 0 0}
+.notes{margin:0;padding-left:20px;color:var(--muted);font-size:13px}
+.notes li{margin-bottom:8px}
+.chart{width:100%;height:190px;display:block}
+.chart .grid line{stroke:var(--grid);stroke-width:1}
+.line-tps{fill:none;stroke:var(--accent);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.area-err{fill:color-mix(in srgb,var(--danger) 22%,transparent)}
+.tick{fill:var(--muted);font-size:9px}
+.legend{margin:8px 0 0;color:var(--muted);font-size:12px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.key{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.key-tps{background:var(--accent)} .key-err{background:var(--danger)}
+.foot{color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:640px){
+  .wrap{padding-block:20px}
+  h1{font-size:22px}
+  .kpi-value{font-size:20px}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="head">
+  <div>
+    <p class="eyebrow">RFC 3161 timestamp capacity test</p>
+    <h1>mock</h1>
+    <p class="sub">http://127.0.0.1:8319/</p>
+  </div>
+  <div class="badges">
+    
+      <span class="badge">TEST ENVIRONMENT</span>
+    
+    
+    
+  </div>
+</header>
+
+
+
+<section class="kpis">
+  <div class="kpi"><span class="kpi-label">Achieved send rate</span><span class="kpi-value">121.72<small> TPS</small></span></div>
+  <div class="kpi"><span class="kpi-label">Success rate</span><span class="kpi-value good">100.00%</span></div>
+  <div class="kpi"><span class="kpi-label">Timeout rate</span><span class="kpi-value">0.00%</span></div>
+  <div class="kpi"><span class="kpi-label">p95 latency</span><span class="kpi-value">1.39<small> ms</small></span></div>
+  <div class="kpi"><span class="kpi-label">p99 latency</span><span class="kpi-value">1.68<small> ms</small></span></div>
+  <div class="kpi"><span class="kpi-label">Quota used</span><span class="kpi-value">2800<small> / 3000</small></span></div>
+</section>
+
+<section class="card">
+  <h2>Run</h2>
+  <dl class="grid">
+    <div><dt>Run ID</dt><dd class="mono">c4280728e4c4</dd></div>
+    <div><dt>Started (UTC)</dt><dd class="mono">2026-09-25 07:01:00 UTC</dd></div>
+    <div><dt>Ended (UTC)</dt><dd class="mono">2026-09-25 07:01:23 UTC</dd></div>
+    <div><dt>Duration</dt><dd>23s</dd></div>
+    <div><dt>Profile</dt><dd>demo</dd></div>
+    <div><dt>Stop reason</dt><dd><span class="mono">completed</span></dd></div>
+    <div><dt>Auth type</dt><dd class="mono">none</dd></div>
+    <div><dt>Hash / payload</dt><dd class="mono">sha256 / 64 B</dd></div>
+    <div><dt>TSA trust anchor</dt><dd class="mono">mock-ca.pem</dd></div>
+    <div><dt>Max concurrency</dt><dd>500</dd></div>
+    <div><dt>Retries</dt><dd>0</dd></div>
+    <div><dt>Tool</dt><dd class="mono">tsa-bench c1e16e0-dirty (darwin/arm64)</dd></div>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Was the client the bottleneck?</h2>
+  
+    <p class="verdict verdict-ok">No client-side saturation was detected. The scheduler held its target arrival rate and the client stayed within its resource limits.</p>
+  
+  <dl class="grid">
+    <div><dt>Client bottleneck</dt><dd><span class="good">no</span></dd></div>
+    <div><dt>Client saturation events</dt><dd>0</dd></div>
+    <div><dt>Schedule lag p99</dt><dd>1.10 ms</dd></div>
+    <div><dt>Schedule lag max</dt><dd>8.32 ms</dd></div>
+    <div><dt>Peak CPU</dt><dd>19.9%</dd></div>
+    <div><dt>Peak RSS</dt><dd>29.5 MB</dd></div>
+    <div><dt>Peak goroutines</dt><dd>9</dd></div>
+    <div><dt>Peak in-flight</dt><dd>1</dd></div>
+    <div><dt>Peak open connections</dt><dd>2</dd></div>
+  </dl>
+</section>
+
+
+<section class="card">
+  <h2>Throughput and error rate over time</h2>
+  
+<svg class="chart" viewBox="0 0 900 190" role="img"
+     aria-label="Completed requests per second and error rate over time" preserveAspectRatio="none">
+  <g class="grid">
+    <line x1="0" y1="8" x2="900" y2="8"/><line x1="0" y1="93" x2="900" y2="93"/><line x1="0" y1="178" x2="900" y2="178"/>
+  </g>
+  
+  <polyline class="line-tps" points="0.0,135.5 40.9,136.3 81.8,135.5 122.7,135.5 163.6,135.5 204.5,135.5 245.5,177.2 286.4,93.0 327.3,93.0 368.2,93.8 409.1,93.0 450.0,92.2 490.9,178.0 531.8,8.0 572.7,8.0 613.6,8.0 654.5,8.0 695.5,8.0 736.4,8.0 777.3,8.0 818.2,8.0 859.1,8.0 900.0,8.0"/>
+  <text class="tick" x="2" y="6">200/s</text><text class="tick" x="2" y="91">100/s</text><text class="tick" x="2" y="176">0/s</text>
+  <text class="tick" x="900" y="190" text-anchor="end">22s</text>
+</svg>
+<p class="legend">
+  <span class="key key-tps"></span> completed/s (max 200.00)
+  <span class="key key-err"></span> error rate (max 0.00%)
+</p>
+
+  <p class="detail">Completed requests per second (line) against the share of failed requests in that second (area).</p>
+</section>
+
+
+<section class="card">
+  <h2>Stages</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>Stage</th><th class="n">Target TPS</th><th class="n">Actual TPS</th>
+      <th class="n">Planned</th><th class="n">Sent</th><th class="n">Verified</th><th class="n">Failed</th>
+      <th class="n">Success</th><th class="n">Timeouts</th>
+      <th class="n">min</th><th class="n">mean</th><th class="n">p95</th><th class="n">p99</th><th class="n">max</th>
+    </tr></thead>
+    <tbody>
+    
+      <tr>
+        <td>functional</td>
+        <td class="n">—</td>
+        <td class="n">2082.27</td>
+        <td class="n">50</td>
+        <td class="n">50</td>
+        <td class="n">50</td>
+        <td class="n">0</td>
+        <td class="n good">100.00%</td>
+        <td class="n">0.00%</td>
+        <td class="n">0.38</td>
+        <td class="n">0.48</td>
+        <td class="n">0.60</td>
+        <td class="n">2.15</td>
+        <td class="n">2.15</td>
+      </tr>
+    
+      <tr>
+        <td>ramp-50</td>
+        <td class="n">50.00</td>
+        <td class="n">49.99</td>
+        <td class="n">250</td>
+        <td class="n">250</td>
+        <td class="n">250</td>
+        <td class="n">0</td>
+        <td class="n good">100.00%</td>
+        <td class="n">0.00%</td>
+        <td class="n">0.53</td>
+        <td class="n">1.30</td>
+        <td class="n">1.64</td>
+        <td class="n">2.38</td>
+        <td class="n">3.71</td>
+      </tr>
+    
+      <tr>
+        <td>ramp-100</td>
+        <td class="n">100.00</td>
+        <td class="n">99.98</td>
+        <td class="n">500</td>
+        <td class="n">500</td>
+        <td class="n">500</td>
+        <td class="n">0</td>
+        <td class="n good">100.00%</td>
+        <td class="n">0.00%</td>
+        <td class="n">0.42</td>
+        <td class="n">1.04</td>
+        <td class="n">1.32</td>
+        <td class="n">1.75</td>
+        <td class="n">11.77</td>
+      </tr>
+    
+      <tr>
+        <td>hold-200</td>
+        <td class="n">200.00</td>
+        <td class="n">199.99</td>
+        <td class="n">2000</td>
+        <td class="n">2000</td>
+        <td class="n">2000</td>
+        <td class="n">0</td>
+        <td class="n good">100.00%</td>
+        <td class="n">0.00%</td>
+        <td class="n">0.40</td>
+        <td class="n">0.92</td>
+        <td class="n">1.21</td>
+        <td class="n">1.60</td>
+        <td class="n">4.93</td>
+      </tr>
+    
+    </tbody>
+  </table>
+  </div>
+  <p class="detail">Latency values are milliseconds and cover the full cycle: HTTP round trip plus RFC 3161 verification.</p>
+</section>
+
+<section class="card">
+  <h2>Latency breakdown (overall)</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Measurement</th><th class="n">count</th><th class="n">min</th><th class="n">mean</th><th class="n">p50</th><th class="n">p90</th><th class="n">p95</th><th class="n">p99</th><th class="n">max</th></tr></thead>
+    <tbody>
+      
+<tr>
+  <td>End to end</td>
+  <td class="n">2800</td>
+  <td class="n">0.38</td>
+  <td class="n">0.97</td>
+  <td class="n">0.95</td>
+  <td class="n">1.25</td>
+  <td class="n">1.39</td>
+  <td class="n">1.68</td>
+  <td class="n">11.77</td>
+</tr>
+
+      
+<tr>
+  <td>Network round trip</td>
+  <td class="n">2800</td>
+  <td class="n">0.15</td>
+  <td class="n">0.37</td>
+  <td class="n">0.34</td>
+  <td class="n">0.50</td>
+  <td class="n">0.60</td>
+  <td class="n">0.85</td>
+  <td class="n">9.28</td>
+</tr>
+
+      
+<tr>
+  <td>RFC 3161 / CMS verification</td>
+  <td class="n">2800</td>
+  <td class="n">0.19</td>
+  <td class="n">0.55</td>
+  <td class="n">0.58</td>
+  <td class="n">0.68</td>
+  <td class="n">0.71</td>
+  <td class="n">1.06</td>
+  <td class="n">6.43</td>
+</tr>
+
+      
+<tr>
+  <td>Schedule lag</td>
+  <td class="n">2800</td>
+  <td class="n">0.00</td>
+  <td class="n">0.62</td>
+  <td class="n">0.56</td>
+  <td class="n">1.06</td>
+  <td class="n">1.07</td>
+  <td class="n">1.10</td>
+  <td class="n">8.32</td>
+</tr>
+
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Error distribution</h2>
+  
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Class</th><th class="n">Count</th><th class="n">Share</th><th>Distribution</th></tr></thead>
+    <tbody>
+    
+      <tr>
+        <td class="mono">ok</td>
+        <td class="n">2800</td>
+        <td class="n">100.00%</td>
+        <td><span class="bar" style="width:100.0%"></span></td>
+      </tr>
+    
+    </tbody>
+  </table>
+  </div>
+  
+  <p class="detail">A transaction counts as verified only when the HTTP status, content type, PKIStatus, nonce,
+  message imprint, CMS signature, certificate chain, timeStamping key usage and genTime skew checks all pass.
+  An HTTP 200 alone is never treated as success.</p>
+</section>
+
+<section class="card">
+  <h2>How to read this</h2>
+  <ul class="notes">
+    <li>Percentiles come from a fixed-size HDR-style histogram with 3 significant figures: each reported value is the upper bound of a bucket at most 1/2048 (about 0.05%) wide. Minimum, maximum and mean are exact.</li><li>Requests are issued on an open-loop constant-arrival-rate schedule: request n is due at start &#43; n/rate regardless of when request n-1 finished. This avoids coordinated omission, where a closed-loop client stops issuing requests while the server is slow and so never measures the latency its own backlog would have seen. Any inability to hold the schedule is reported as schedule lag and client saturation rather than being absorbed into a quietly lower rate.</li>
+  </ul>
+  <h3>Limitations</h3>
+  <ul class="notes">
+    <li>Results describe the service during this test window only. A live TSA is shared with real customer traffic, so the same test at another time may produce different numbers.</li><li>The highest sustained rate exercised is bounded by the profile; a stage that was not run says nothing about behaviour at that rate.</li><li>Certificate revocation (CRL/OCSP) is not checked during the run; doing so would add network traffic that would distort the latency measurement.</li>
+  </ul>
+</section>
+
+<footer class="foot">
+  <p>Generated by tsa-bench c1e16e0-dirty on 2026-09-25 07:01:23 UTC.
+  Machine-readable results: <span class="mono">summary.json</span>, <span class="mono">requests.csv</span>,
+  <span class="mono">timeseries.csv</span>, <span class="mono">errors.csv</span>.</p>
+</footer>
+
+</main>
+</body>
+</html>

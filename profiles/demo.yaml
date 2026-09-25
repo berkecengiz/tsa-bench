@@ -1,0 +1,40 @@
+# Profile for `make demo`: a rate ladder against the local mock responder.
+#
+# Not for use against a provider. Its point is to produce a report with enough
+# shape in it - several stages, a visible per-second series, a percentile
+# spread - that someone can see what the tool outputs without sending a single
+# request to anyone. The mock signs locally, so the latencies here are the
+# latency of an in-process signature and say nothing about any real service.
+#
+#   functional  sequential      50
+#   ramp-50      50 TPS x  5 s  250
+#   ramp-100    100 TPS x  5 s  500
+#   hold-200    200 TPS x 10 s 2,000
+#                              -----
+#   planned                    2,800
+name: demo
+note: >-
+  Rate ladder against the local mock responder, for demonstration only. The
+  latencies are those of a local signature and do not describe any provider.
+
+reserve: 0
+
+stages:
+  - name: functional
+    mode: sequential
+    count: 50
+
+  - name: ramp-50
+    mode: rate
+    tps: 50
+    duration: 5s
+
+  - name: ramp-100
+    mode: rate
+    tps: 100
+    duration: 5s
+
+  - name: hold-200
+    mode: rate
+    tps: 200
+    duration: 10s

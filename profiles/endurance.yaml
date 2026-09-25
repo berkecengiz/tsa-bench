@@ -1,0 +1,55 @@
+# Endurance at and above the rate that looked stable.
+#
+# The fine ladder, run with enough connection headroom that the client was not
+# the constraint, found no cliff: this provider is comfortable at any of these
+# rates for a while and then begins to queue. Onset was 33 seconds at 105 TPS
+# and 27 seconds at 115. Only 100 TPS held flat for its whole 40-second step.
+#
+# Forty seconds cannot settle that, because the onsets are the same order as
+# the step itself. Both holds below are long enough for a slowly growing queue
+# to declare itself.
+#
+#   warmup      75 TPS x  30 s =  2,250   known-good reference
+#   hold-100   100 TPS x 300 s = 30,000   matches the 50k sustained stage
+#   hold-150   150 TPS x 120 s = 18,000   re-measures a contaminated result
+#                                -------
+#   planned                       50,250
+#
+# hold-150 exists to correct the record. The 50k profile reported 115 TPS
+# achieved and p95 at 7.8 seconds for a 150 TPS target, but that run was capped
+# at 500 connections and spent the stage pinned there, so an unknown part of
+# that latency was the client waiting for its own pool. With headroom the
+# question is open again.
+#
+# The pauses after each hold are 60 s rather than the configured default: a
+# five-minute hold can leave a queue behind, and the next stage should start
+# against a recovered service or it measures the previous one.
+#
+# What to read: mean latency per second within each hold, not the aggregate. A
+# flat line means the rate is sustainable. A slow upward drift means it is not,
+# and the ladder was measuring the delay before saturation rather than its
+# absence.
+name: endurance
+note: >-
+  Five minutes at 100 TPS and two at 150, to separate a sustainable rate from
+  one that merely takes a while to fall behind.
+
+reserve: 0
+
+stages:
+  - name: warmup
+    mode: rate
+    tps: 75
+    duration: 30s
+    pause_after: 60s
+
+  - name: hold-100
+    mode: rate
+    tps: 100
+    duration: 300s
+    pause_after: 60s
+
+  - name: hold-150
+    mode: rate
+    tps: 150
+    duration: 120s

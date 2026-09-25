@@ -1,0 +1,66 @@
+# Capacity profile for an allowance with no room to repeat.
+#
+# Written for a 50,000-unit allowance; nothing in it is provider-specific.
+# Use it wherever one wrong run would spend the whole budget.
+#
+# The standard 50k profile puts 45,000 of its 48,600 requests into a single
+# five-minute stage at 150 TPS, which is the right shape when the allowance can
+# absorb a second attempt. It is the wrong shape when it cannot: against one
+# provider that stage neither passed nor failed cleanly - the service degraded
+# without erroring enough to trip the breaker, so the whole budget went into a
+# measurement with a p95 of 7.8 seconds and nothing comparable came out of it.
+#
+#   functional  sequential        100
+#   ramp-25      25 TPS x  20 s   500
+#   ramp-50      50 TPS x  20 s  1,000
+#   hold-100    100 TPS x 240 s 24,000   the number that must survive the run
+#   hold-150    150 TPS x 120 s 18,000   the engagement question
+#                                ------
+#   planned                      43,600
+#
+# The ordering is the point. A stage that collapses ends the run through the
+# breaker, and every stage after it is lost. So the measurement most likely to
+# succeed is taken first and banked, and the rate in question is attempted
+# last, where failing costs only itself.
+#
+# Two minutes at 150 is short but decisive: every degradation observed against
+# another provider began within 33 seconds, and an outright collapse took 18.
+# A rate that holds flat for two minutes is unlikely to bend at five.
+#
+# Requires max_concurrency well above rate x latency - see the connection pool
+# note in docs/capacity-findings.md, where a 500-connection cap silently throttled
+# the client and contaminated two separate measurements. Check conns_open
+# against the pool for every stage.
+name: oneshot
+note: >-
+  Capacity profile for a single attempt: a sustainable rate proven first, the
+  target rate probed last. 43,600 requests, sized to leave margin in a 50,000
+  allowance.
+
+reserve: 0
+
+stages:
+  - name: functional
+    mode: sequential
+    count: 100
+
+  - name: ramp-25
+    mode: rate
+    tps: 25
+    duration: 20s
+
+  - name: ramp-50
+    mode: rate
+    tps: 50
+    duration: 20s
+
+  - name: hold-100
+    mode: rate
+    tps: 100
+    duration: 240s
+    pause_after: 60s
+
+  - name: hold-150
+    mode: rate
+    tps: 150
+    duration: 120s

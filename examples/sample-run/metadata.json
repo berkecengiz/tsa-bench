@@ -1,0 +1,47 @@
+{
+  "schema": "tsa-bench/v1",
+  "run_id": "c4280728e4c4",
+  "tool": "tsa-bench",
+  "version": "c1e16e0-dirty",
+  "go_version": "go1.27.1",
+  "os": "darwin",
+  "arch": "arm64",
+  "hostname": "[REDACTED]",
+  "started_at": "2026-09-25T10:01:00.419886+03:00",
+  "ended_at": "2026-09-25T10:01:23.415571+03:00",
+  "command_line": "[REDACTED]",
+  "provider": {
+    "name": "mock",
+    "endpoint_redacted": "http://127.0.0.1:8319/",
+    "environment": "test",
+    "auth_type": "none"
+  },
+  "profile_name": "demo",
+  "profile_note": "Rate ladder against the local mock responder, for demonstration only. The latencies are those of a local signature and do not describe any provider.",
+  "request": {
+    "hash_algorithm": "sha256",
+    "payload_size_bytes": 64,
+    "cert_req": true,
+    "timeout_ms": 10000,
+    "max_clock_skew_seconds": 60,
+    "require_ess": false
+  },
+  "load": {
+    "max_concurrency": 500,
+    "stage_pause_seconds": 1,
+    "lag_threshold_ms": 250,
+    "grace_period_seconds": 15
+  },
+  "quota": {
+    "max_requests": 3000,
+    "hard_cap": 50000,
+    "profile_planned": 2800,
+    "profile_reserve": 0,
+    "retries": 0
+  },
+  "tls": {
+    "min_version": "1.2",
+    "insecure_skip_verify": false,
+    "tsa_trust_source": "mock-ca.pem"
+  }
+}

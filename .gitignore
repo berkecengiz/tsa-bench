@@ -1,0 +1,27 @@
+# Results contain endpoints, timing and (with --debug-artifacts) raw protocol
+# bytes. They are never committed.
+/results/
+/bin/
+/dist/
+
+# Real configurations. Only *.example.yaml belongs in the repository.
+/configs/*.yaml
+!/configs/*.example.yaml
+
+# Key material and secrets must never reach version control.
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.env
+.env.*
+
+# Local tooling
+*.test
+*.out
+coverage.*
+.DS_Store
+
+# Output of `make demo`. The committed copy lives in examples/sample-run/.
+/demo-results/

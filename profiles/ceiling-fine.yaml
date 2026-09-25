@@ -1,0 +1,63 @@
+# Narrow search between the last clean rate and the collapse.
+#
+# profiles/ceiling.yaml put the limit somewhere between 100 and 125: clean at
+# 100 apart from a lengthening tail, and at 125 the median request already took
+# 5.3 seconds. This walks that gap in steps of five.
+#
+#   step-100  100 TPS x 40 s =  4,000
+#   step-105  105 TPS x 40 s =  4,200
+#   step-110  110 TPS x 40 s =  4,400
+#   step-115  115 TPS x 40 s =  4,600
+#   step-120  120 TPS x 40 s =  4,800
+#   step-125  125 TPS x 40 s =  5,000
+#                               ------
+#   planned                     27,000
+#
+# Steps are 40 s rather than 30 so a queue has time to build: a rate that looks
+# survivable for half a minute can still drift, which is what the 50k profile
+# showed at 150. Watch p99 across steps, not the success rate - the tail moves
+# first, and by the time requests fail the answer is already several steps
+# behind.
+#
+# The breaker is expected to end this run. Crossing the cliff is the result,
+# and the stages above it would measure nothing, so an auto_abort here is a
+# successful outcome rather than a problem. Requires the same raised
+# max_concurrency as ceiling.yaml, and the same check that
+# client_saturation_events is 0 for every step.
+name: ceiling-fine
+note: >-
+  Five-TPS ladder across the saturation point located by the ceiling profile.
+  27,000 requests; expect the run to abort partway, which is the answer.
+
+reserve: 0
+
+stages:
+  - name: step-100
+    mode: rate
+    tps: 100
+    duration: 40s
+
+  - name: step-105
+    mode: rate
+    tps: 105
+    duration: 40s
+
+  - name: step-110
+    mode: rate
+    tps: 110
+    duration: 40s
+
+  - name: step-115
+    mode: rate
+    tps: 115
+    duration: 40s
+
+  - name: step-120
+    mode: rate
+    tps: 120
+    duration: 40s
+
+  - name: step-125
+    mode: rate
+    tps: 125
+    duration: 40s

@@ -1,0 +1,50 @@
+{
+  "schema": "tsa-bench/v1",
+  "generated_at": "2026-09-25T10:01:23.436972+03:00",
+  "entries": [
+    {
+      "provider": "mock",
+      "environment": "test",
+      "run_id": "c4280728e4c4",
+      "directory": "./demo-results/mock/20260925T070100Z-c4280728e4c4",
+      "started_at": "2026-09-25T10:01:00.419886+03:00",
+      "duration_seconds": 22.995771,
+      "peak_target_tps": 200,
+      "achieved_tps": 121.72447441250654,
+      "total_requests": 2800,
+      "verified_requests": 2800,
+      "failed_requests": 0,
+      "success_rate": 1,
+      "timeout_rate": 0,
+      "min_ms": 0.381,
+      "mean_ms": 0.970131,
+      "p95_ms": 1.393663,
+      "p99_ms": 1.681407,
+      "max_ms": 11.768791,
+      "client_bottleneck_observed": false,
+      "partial": false,
+      "stop_reason": "completed",
+      "errors": [
+        {
+          "class": "ok",
+          "count": 2800,
+          "share": 1
+        }
+      ],
+      "sustained_stage": "hold-200",
+      "sustained_seconds": 9.995525,
+      "sustained_target_tps": 200
+    }
+  ],
+  "notes": [
+    "Percentiles come from a fixed-size HDR-style histogram with 3 significant figures: each reported value is the upper bound of a bucket at most 1/2048 (about 0.05%) wide. Minimum, maximum and mean are exact.",
+    "Requests are issued on an open-loop constant-arrival-rate schedule: request n is due at start + n/rate regardless of when request n-1 finished. This avoids coordinated omission, where a closed-loop client stops issuing requests while the server is slow and so never measures the latency its own backlog would have seen. Any inability to hold the schedule is reported as schedule lag and client saturation rather than being absorbed into a quietly lower rate.",
+    "Providers must be tested sequentially, not concurrently, and from the same host and network egress. Runs made under different conditions are not comparable."
+  ],
+  "limitations": [
+    "Each figure describes one bounded test window at a fixed target rate; it is not a guarantee of sustained production capacity.",
+    "Where a run is marked as client-bottlenecked, that provider's figures are a lower bound on its capacity, not a measurement of it.",
+    "Success requires the full RFC 3161 acceptance chain to pass, so these success rates are stricter than an HTTP-level availability figure."
+  ],
+  "any_live_environment": false
+}

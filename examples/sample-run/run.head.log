@@ -1,0 +1,12 @@
+{"time":"2026-09-25T10:01:00.419586+03:00","level":"INFO","msg":"run starting","run_id":"c4280728e4c4","provider":"mock","endpoint":"http://127.0.0.1:8319/","environment":"test","profile":"demo","planned_requests":2800,"max_requests":3000,"hard_cap":50000,"peak_target_tps":200,"total_duration_seconds":20,"max_concurrency":500,"retries":0,"trust_anchor":"mock-ca.pem"}
+{"time":"2026-09-25T10:01:00.419921+03:00","level":"INFO","msg":"stage starting","stage":"functional","mode":"sequential","target_tps":0,"planned_requests":50,"quota_remaining":3000}
+{"time":"2026-09-25T10:01:00.443863+03:00","level":"INFO","msg":"stage finished","stage":"functional","sent":50,"completed":50,"success":50,"failure":0,"actual_send_tps":"2087.36"}
+{"time":"2026-09-25T10:01:00.443897+03:00","level":"INFO","msg":"pausing between stages","duration":"1s"}
+{"time":"2026-09-25T10:01:01.445293+03:00","level":"INFO","msg":"stage starting","stage":"ramp-50","mode":"rate","target_tps":50,"planned_requests":250,"quota_remaining":2950}
+{"time":"2026-09-25T10:01:06.425978+03:00","level":"INFO","msg":"stage finished","stage":"ramp-50","sent":250,"completed":249,"success":249,"failure":0,"actual_send_tps":"50.19"}
+{"time":"2026-09-25T10:01:06.426106+03:00","level":"INFO","msg":"pausing between stages","duration":"1s"}
+{"time":"2026-09-25T10:01:07.426919+03:00","level":"INFO","msg":"stage starting","stage":"ramp-100","mode":"rate","target_tps":100,"planned_requests":500,"quota_remaining":2700}
+{"time":"2026-09-25T10:01:12.417862+03:00","level":"INFO","msg":"stage finished","stage":"ramp-100","sent":500,"completed":499,"success":499,"failure":0,"actual_send_tps":"100.18"}
+{"time":"2026-09-25T10:01:12.417977+03:00","level":"INFO","msg":"pausing between stages","duration":"1s"}
+{"time":"2026-09-25T10:01:13.418808+03:00","level":"INFO","msg":"stage starting","stage":"hold-200","mode":"rate","target_tps":200,"planned_requests":2000,"quota_remaining":2200}
+{"time":"2026-09-25T10:01:23.414507+03:00","level":"INFO","msg":"stage finished","stage":"hold-200","sent":2000,"completed":1999,"success":1999,"failure":0,"actual_send_tps":"200.09"}
