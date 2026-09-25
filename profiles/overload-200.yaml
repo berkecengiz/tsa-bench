@@ -1,0 +1,46 @@
+# Deliberate overload, to observe failure behaviour rather than capacity.
+#
+# The ladder profiles answer "how much can it take". This one answers "what
+# does it do when it cannot take any more", which is a different and equally
+# operational question: a service that refuses cleanly under overload is very
+# different to live with than one that accepts everything and times out.
+#
+#   warmup      75 TPS x 20 s =  1,500   baseline, expected clean
+#   overload   200 TPS x 30 s =  6,000   expected to abort early
+#                                -------
+#   planned                       7,500
+#
+# The run is expected to stop in the overload stage. The warmup is there so the
+# report carries a healthy baseline from minutes earlier for comparison, rather
+# than leaving the collapse without context.
+#
+# What to read: the error classes. response_timeout means the service accepted
+# work it could not finish. An HTTP 429 or 503 means it shed load deliberately,
+# which is better behaviour and worth knowing about. Latency at the point of
+# refusal matters too - a fast rejection costs a client far less than a ten
+# second wait for nothing.
+#
+# Recovery cannot be measured here, because the breaker ends the run: to see
+# whether the service returns to baseline, run the smoke profile a few minutes
+# afterwards and compare against the warmup numbers.
+#
+# Requires max_concurrency of at least 2000: at 200 TPS against a 10 s timeout
+# that is how many requests can be in flight before the client becomes the
+# constraint.
+name: overload-200
+note: >-
+  Drives the provider past its measured ceiling on purpose, to record how it
+  fails. Expect an auto_abort; that is the observation, not a fault.
+
+reserve: 0
+
+stages:
+  - name: warmup
+    mode: rate
+    tps: 75
+    duration: 20s
+
+  - name: overload
+    mode: rate
+    tps: 200
+    duration: 30s

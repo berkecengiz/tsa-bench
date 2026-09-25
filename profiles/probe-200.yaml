@@ -1,0 +1,30 @@
+# A single short step above the highest rate already proven.
+#
+# The oneshot run left the provider flat at 150 TPS: median unchanged from idle,
+# zero failures, connections nowhere near the pool. The ceiling is above that
+# and unmeasured. This spends almost all of what remains of the allowance on
+# one question - is it also above 200?
+#
+#   step-200  200 TPS x 30 s = 6,000
+#
+# There is no warmup stage and no second attempt: 6,398 units remain of 50,000
+# and this leaves under 400. Thirty seconds is short, but the other two
+# providers declared themselves well inside it - one collapsed at 150 TPS in
+# eighteen seconds - so a rate that stays flat for thirty is a real
+# answer, if not a durable one.
+#
+# What to read: whether the median moves. It sat at 64-66 ms from idle through
+# 150/s. Unchanged again means the ceiling is still above the measurement and
+# this provider is simply not being stressed. Rising means the limit is near.
+name: probe-200
+note: >-
+  One 30-second step at 200 TPS, to see whether the ceiling is above the 150
+  already proven. 6,000 requests, essentially the last of the allowance.
+
+reserve: 0
+
+stages:
+  - name: step-200
+    mode: rate
+    tps: 200
+    duration: 30s

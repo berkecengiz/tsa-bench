@@ -1,0 +1,89 @@
+# Basic auth over https — EXAMPLE configuration. Placeholders only.
+#
+# This file contains NO real endpoint and NO real credentials, and it must stay
+# that way: the repository must never hold either. Copy it, fill in the values
+# your provider gave you, and keep the copy outside version control.
+#
+#   cp configs/basic-auth.example.yaml ~/.config/tsa-bench/provider.yaml
+#   chmod 600 ~/.config/tsa-bench/provider.yaml
+#
+# Secrets are NEVER written here and are NEVER passed as command line
+# arguments (the process table is readable by other users). Name the
+# environment variable instead; the value is read at use time.
+#
+#   export TSA_USER='...'
+#   export TSA_PASS='...'
+
+provider:
+  name: provider-b
+  # REQUIRED. Ask the provider for the exact timestamp endpoint. There is no
+  # default; the tool will not contact anything you have not configured.
+  endpoint: "https://REPLACE-ME.example.invalid/timestamp"
+
+  # "live" for a production service, "test" for a vendor test bed.
+  # A live target additionally requires --acknowledge-live-environment on run.
+  environment: live
+
+  auth:
+    # one of: none, basic, bearer, header, mtls
+    type: basic
+    username_env: TSA_USER
+    password_env: TSA_PASS
+    # For type: bearer
+    # token_env: TSA_TOKEN
+    # For type: header — values must reference an environment variable.
+    # headers:
+    #   X-Api-Key: "env:TSA_API_KEY"
+
+tls:
+  # CA bundle for the TLS connection. Empty means the system root store.
+  ca_file: ""
+  # CA bundle used to verify the TSA *signing certificate* chain. Set this:
+  # the system root store often does not contain a qualified TSA's issuer, and
+  # without it every response fails as untrusted_certificate.
+  tsa_ca_file: ""
+  # Client certificate, required when auth.type is mtls.
+  client_cert_file: ""
+  client_key_file: ""
+  # Override SNI / hostname verification only if the provider tells you to.
+  server_name: ""
+  # Never enable this against a real provider. It disables authentication of
+  # the endpoint, is warned about loudly, and is recorded in the report.
+  insecure_skip_verify: false
+  min_version: "1.2"
+
+request:
+  hash_algorithm: sha256
+  payload_size: 64
+  timeout: 10s
+  # Must stay true: without the TSA certificate the signature cannot be
+  # verified against a trust chain.
+  cert_req: true
+  max_clock_skew: 60s
+  # Set only if the provider requires a specific TSA policy OID.
+  policy_oid: ""
+  # Fail a response that carries no ESS SigningCertificate(V2) attribute.
+  # Leave false unless you have confirmed the provider emits it.
+  require_ess: false
+
+load:
+  max_concurrency: 500
+  stage_pause: 30s
+  lag_threshold: 250ms
+  grace_period: 30s
+
+limits:
+  # Budget for a single run. Must be <= hard_cap.
+  max_requests: 48600
+  # Absolute protection limit for the engagement. Enforced atomically.
+  hard_cap: 50000
+  # Off by default: every retry consumes another unit of provider quota.
+  retries: 0
+  # Stop the run if the service is clearly failing, rather than burning the
+  # rest of the quota against a degraded endpoint.
+  abort_on_error_rate: 0.25
+  abort_window: 200
+  abort_on_consecutive_failures: 50
+
+output:
+  directory: results

@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TSA capacity comparison</title>
+<style>
+:root{
+  --bg:#fbfbfa; --panel:#fff; --ink:#1a1a18; --muted:#6b6b66; --line:#e4e4e0;
+  --accent:#2f5d50; --ok:#2f6f4f; --warn:#8a5a12; --danger:#9b2c2c;
+  --grid:#eeeeea; --bar:#c9d6d0;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --panel:#1e2024; --ink:#e9e9e6; --muted:#9a9a94; --line:#2e3137;
+    --accent:#7fb8a4; --ok:#7fc3a0; --warn:#d8a95a; --danger:#e08585;
+    --grid:#282b30; --bar:#33413b;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:14px/1.55 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding-block:32px;padding-left:20px;padding-right:20px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+h1{font-size:28px;margin:.15em 0 .1em;letter-spacing:-.02em}
+h2{font-size:15px;margin:0 0 14px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+h3{font-size:14px;margin:20px 0 8px}
+.eyebrow{margin:0;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.sub{margin:0;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;word-break:break-all}
+.head{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start;
+  padding-bottom:20px;border-bottom:2px solid var(--line);margin-bottom:24px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:3px;
+  font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);background:var(--panel)}
+.badge-live{color:#fff;background:var(--danger);border-color:var(--danger)}
+.badge-warn{color:var(--warn);border-color:var(--warn)}
+.badge-danger{color:#fff;background:var(--danger);border-color:var(--danger)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px;margin-bottom:18px}
+.callout{border-radius:6px;padding:16px 20px;margin-bottom:18px;border:1px solid var(--warn)}
+.callout-warn{background:color-mix(in srgb,var(--warn) 8%,var(--panel))}
+.callout ul{margin:0;padding-left:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi-label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.kpi-value{font-size:24px;font-weight:650;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums}
+.kpi-value small{font-size:13px;font-weight:400;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px 22px;margin:0}
+.grid div{min-width:0}
+dt{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+dd{margin:2px 0 0;word-break:break-word}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right}
+tbody tr:last-child td{border-bottom:none}
+.good{color:var(--ok)} .mid{color:var(--warn)} .bad{color:var(--danger)}
+.bar{display:block;height:9px;background:var(--bar);border-radius:2px;min-width:1px}
+.verdict{margin:0 0 10px;font-size:15px;font-weight:600}
+.verdict-ok{color:var(--ok)} .verdict-warn{color:var(--warn)}
+.detail{color:var(--muted);font-size:12.5px;margin:10px 0 0}
+.notes{margin:0;padding-left:20px;color:var(--muted);font-size:13px}
+.notes li{margin-bottom:8px}
+.chart{width:100%;height:190px;display:block}
+.chart .grid line{stroke:var(--grid);stroke-width:1}
+.line-tps{fill:none;stroke:var(--accent);stroke-width:1.6;vector-effect:non-scaling-stroke}
+.area-err{fill:color-mix(in srgb,var(--danger) 22%,transparent)}
+.tick{fill:var(--muted);font-size:9px}
+.legend{margin:8px 0 0;color:var(--muted);font-size:12px;display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.key{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.key-tps{background:var(--accent)} .key-err{background:var(--danger)}
+.foot{color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:640px){
+  .wrap{padding-block:20px}
+  h1{font-size:22px}
+  .kpi-value{font-size:20px}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="head">
+  <div>
+    <p class="eyebrow">Executive summary</p>
+    <h1>Timestamp service capacity comparison</h1>
+    <p class="sub">3 provider(s) · generated 2026-03-14 12:00:00 UTC</p>
+  </div>
+  <div class="badges">
+    <span class="badge badge-live">LIVE PRODUCTION</span>
+  </div>
+</header>
+
+<section class="callout callout-warn">
+  <h2>Read this first</h2>
+  <ul>
+    <li>Each provider was measured over a bounded window at a fixed target rate — the headline figure below
+        names the stage it came from. This is <strong>not</strong> a guarantee of sustained production capacity.</li>
+    <li>A run marked <em>client bottleneck</em> reports a lower bound on that provider's capacity, not a
+        measurement of it.</li>
+    <li>Success means the complete RFC 3161 acceptance chain passed — status, content type, PKIStatus, nonce,
+        imprint, CMS signature, certificate chain, timeStamping key usage and genTime skew. An HTTP 200 alone
+        is never counted as success.</li>
+    
+    <li>At least one target was a live production service shared with real customer traffic, so concurrent
+        third-party load is an uncontrolled variable.</li>
+    
+  </ul>
+</section>
+
+<section class="card">
+  <h2>Side by side</h2>
+  <div class="scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Measure</th>
+        <th class="n">Provider A</th><th class="n">Provider B</th><th class="n">Provider C</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Environment</td>
+        <td class="n"><span class="badge badge-live">LIVE</span></td><td class="n"><span class="badge badge-live">LIVE</span></td><td class="n"><span class="badge badge-live">LIVE</span></td></tr>
+      <tr><td>Headline stage</td>
+        <td class="n mono">sustained-150</td><td class="n mono">sustained-150</td><td class="n mono">sustained-150</td></tr>
+      <tr><td>Target rate at that stage</td>
+        <td class="n">150.00 TPS for 5m0s</td><td class="n">150.00 TPS for 5m0s</td><td class="n">150.00 TPS for 5m0s</td></tr>
+      <tr><td><strong>Achieved rate (whole run)</strong></td>
+        <td class="n"><strong>127.90 TPS</strong></td><td class="n"><strong>127.90 TPS</strong></td><td class="n"><strong>127.90 TPS</strong></td></tr>
+      <tr><td><strong>Success rate</strong></td>
+        <td class="n mid"><strong>99.90%</strong></td><td class="n mid"><strong>99.90%</strong></td><td class="n mid"><strong>99.90%</strong></td></tr>
+      <tr><td>Timeout rate</td>
+        <td class="n">0.04%</td><td class="n">0.04%</td><td class="n">0.04%</td></tr>
+      <tr><td>Total requests sent</td>
+        <td class="n">48600</td><td class="n">48600</td><td class="n">48600</td></tr>
+      <tr><td>Verified</td>
+        <td class="n">48550</td><td class="n">48550</td><td class="n">48550</td></tr>
+      <tr><td>Failed</td>
+        <td class="n">50</td><td class="n">50</td><td class="n">50</td></tr>
+      <tr><td>Latency min</td>
+        <td class="n">38.00 ms</td><td class="n">38.00 ms</td><td class="n">38.00 ms</td></tr>
+      <tr><td>Latency mean</td>
+        <td class="n">60.00 ms</td><td class="n">60.00 ms</td><td class="n">60.00 ms</td></tr>
+      <tr><td>Latency p95</td>
+        <td class="n">95.00 ms</td><td class="n">95.00 ms</td><td class="n">95.00 ms</td></tr>
+      <tr><td>Latency p99</td>
+        <td class="n">146.00 ms</td><td class="n">146.00 ms</td><td class="n">146.00 ms</td></tr>
+      <tr><td>Latency max</td>
+        <td class="n">902.00 ms</td><td class="n">902.00 ms</td><td class="n">902.00 ms</td></tr>
+      <tr><td>Client bottleneck observed</td>
+        <td class="n"><span class="bad">yes</span></td><td class="n"><span class="good">no</span></td><td class="n"><span class="good">no</span></td></tr>
+      <tr><td>Run completed</td>
+        <td class="n">yes</td><td class="n">yes</td><td class="n">yes</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+
+<section class="card">
+  <h2>Error distribution</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Error class</th><th class="n">Provider A</th><th class="n">Provider B</th><th class="n">Provider C</th></tr></thead>
+    <tbody>
+      
+      
+      <tr>
+        <td class="mono">http_5xx.503</td>
+        <td class="n">18</td><td class="n">18</td><td class="n">18</td>
+      </tr>
+      
+      <tr>
+        <td class="mono">response_timeout</td>
+        <td class="n">20</td><td class="n">20</td><td class="n">20</td>
+      </tr>
+      
+      <tr>
+        <td class="mono">tsp_rejection.systemFailure</td>
+        <td class="n">12</td><td class="n">12</td><td class="n">12</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  </div>
+</section>
+
+
+<section class="card">
+  <h2>Client bottleneck detail</h2>
+  <dl class="grid">
+    
+    <div>
+      <dt>Provider A</dt>
+      <dd>p99 schedule lag exceeded the configured threshold</dd>
+    </div>
+    
+    <div>
+      <dt>Provider B</dt>
+      <dd>No client-side saturation detected.</dd>
+    </div>
+    
+    <div>
+      <dt>Provider C</dt>
+      <dd>No client-side saturation detected.</dd>
+    </div>
+    
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Method and limitations</h2>
+  <ul class="notes"><li>Percentiles come from a fixed-size HDR-style histogram with 3 significant figures: each reported value is the upper bound of a bucket at most 1/2048 (about 0.05%) wide. Minimum, maximum and mean are exact.</li><li>Requests are issued on an open-loop constant-arrival-rate schedule: request n is due at start &#43; n/rate regardless of when request n-1 finished. This avoids coordinated omission, where a closed-loop client stops issuing requests while the server is slow and so never measures the latency its own backlog would have seen. Any inability to hold the schedule is reported as schedule lag and client saturation rather than being absorbed into a quietly lower rate.</li><li>Providers must be tested sequentially, not concurrently, and from the same host and network egress. Runs made under different conditions are not comparable.</li></ul>
+  <h3>Limitations</h3>
+  <ul class="notes"><li>Each figure describes one bounded test window at a fixed target rate; it is not a guarantee of sustained production capacity.</li><li>Where a run is marked as client-bottlenecked, that provider&#39;s figures are a lower bound on its capacity, not a measurement of it.</li><li>Success requires the full RFC 3161 acceptance chain to pass, so these success rates are stricter than an HTTP-level availability figure.</li><li>At least one run targeted a live production service shared with real customer traffic; concurrent third-party load is an uncontrolled variable.</li></ul>
+</section>
+
+<section class="card">
+  <h2>Source runs</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Provider</th><th>Run ID</th><th>Started (UTC)</th><th>Duration</th><th>Directory</th></tr></thead>
+    <tbody>
+    
+      <tr>
+        <td>Provider A</td>
+        <td class="mono">0123456789ab</td>
+        <td class="mono">2026-03-14 09:00:00 UTC</td>
+        <td>6m40s</td>
+        <td class="mono">results/provider-a/run</td>
+      </tr>
+    
+      <tr>
+        <td>Provider B</td>
+        <td class="mono">0123456789ab</td>
+        <td class="mono">2026-03-14 09:00:00 UTC</td>
+        <td>6m40s</td>
+        <td class="mono">results/provider-b/run</td>
+      </tr>
+    
+      <tr>
+        <td>Provider C</td>
+        <td class="mono">0123456789ab</td>
+        <td class="mono">2026-03-14 09:00:00 UTC</td>
+        <td>6m40s</td>
+        <td class="mono">results/provider-c/run</td>
+      </tr>
+    
+    </tbody>
+  </table>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

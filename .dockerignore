@@ -1,0 +1,47 @@
+# The build context is sent in full to the daemon and lands in the build
+# layer, where .gitignore means nothing. Anything secret or sensitive that sits
+# in the working tree has to be excluded here as well.
+#
+# The build needs go.mod, go.sum, cmd/ and internal/. Nothing else reaches the
+# final image: the runtime stage copies only the compiled binary.
+
+# Key material and secrets must never enter the build context. Patterns are
+# matched against the whole relative path, so each needs a **/ form to catch a
+# file sitting in a subdirectory.
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+**/*.pfx
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Real configurations. Only *.example.yaml is placeholder-only, and configs are
+# mounted at runtime rather than baked into the image.
+configs/*.yaml
+!configs/*.example.yaml
+
+# Run output: endpoints, timings, and under --debug-artifacts the raw signed
+# protocol bytes of every request and response.
+results/
+
+# Build outputs and local tooling.
+bin/
+dist/
+**/*.test
+**/*.out
+coverage.*
+
+# VCS and editor/OS cruft. VERSION is passed as a build ARG, so .git is not
+# needed to stamp the binary.
+.git/
+.gitignore
+.DS_Store
+**/.DS_Store

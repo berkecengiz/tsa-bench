@@ -1,0 +1,4 @@
+provider,environment,run_id,sustained_stage,sustained_target_tps,sustained_seconds,achieved_tps,total_requests,verified,failed,success_rate,timeout_rate,min_ms,mean_ms,p95_ms,p99_ms,max_ms,client_bottleneck,partial,stop_reason
+Provider A,live,0123456789ab,sustained-150,150.00,300.0,127.90,48600,48550,50,0.998971,0.000412,38.00,60.00,95.00,146.00,902.00,true,false,completed
+Provider B,live,0123456789ab,sustained-150,150.00,300.0,127.90,48600,48550,50,0.998971,0.000412,38.00,60.00,95.00,146.00,902.00,false,false,completed
+Provider C,live,0123456789ab,sustained-150,150.00,300.0,127.90,48600,48550,50,0.998971,0.000412,38.00,60.00,95.00,146.00,902.00,false,false,completed

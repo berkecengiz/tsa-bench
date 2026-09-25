@@ -1,0 +1,61 @@
+# Latency-versus-rate curve for a provider with no cliff.
+#
+# A latency-bound service does not collapse the way a throughput-bound one
+# does. The provider this profile was written for still delivered 94.7
+# timestamps/s when offered 100 - it simply took 4.8 seconds to do each one.
+# Offered load is met; latency is what gives way. So there is no single
+# ceiling to find, and asking for one produces a number that depends entirely
+# on an unstated latency budget:
+#
+#   no queueing at all (flat p50)      below 25 TPS
+#   p95 under a second                 around 50 TPS
+#   no failures                        between 50 and 100
+#   throughput alone                   about 95 TPS, at a 4.8 s median
+#
+# This profile measures the curve so the rate can be read off whichever budget
+# applies, and holds the most defensible rate long enough to be quotable.
+#
+#   hold-50   50 TPS x 180 s =  9,000   a rate someone can plan against
+#   step-60   60 TPS x  60 s =  3,600
+#   step-70   70 TPS x  60 s =  4,200
+#   step-80   80 TPS x  60 s =  4,800
+#                               ------
+#   planned                     21,600
+#
+# Steps are 60 s, not the 30 or 40 used elsewhere: degradation here is gradual
+# rather than sudden, and a short window flatters it. Even so, resolution is
+# about +/-10 TPS, not better - p95 came out at 703 ms for 25 TPS and 626 ms
+# for 50 in the previous run, so the service varies by more than the gap
+# between adjacent steps.
+#
+# Ordering as before: the rate most likely to survive is measured first,
+# because a stage that trips the breaker ends the run and loses the rest.
+name: curve
+note: >-
+  Three minutes at 50 TPS, then 60, 70 and 80 for a minute each. Produces a
+  latency curve rather than a single ceiling, because this provider degrades
+  gradually instead of collapsing.
+
+reserve: 0
+
+stages:
+  - name: hold-50
+    mode: rate
+    tps: 50
+    duration: 180s
+    pause_after: 60s
+
+  - name: step-60
+    mode: rate
+    tps: 60
+    duration: 60s
+
+  - name: step-70
+    mode: rate
+    tps: 70
+    duration: 60s
+
+  - name: step-80
+    mode: rate
+    tps: 80
+    duration: 60s

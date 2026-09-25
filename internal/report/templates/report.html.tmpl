@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Summary.Metadata.Provider.Name}} — RFC 3161 capacity test</title>
+<style>{{template "style"}}</style>
+</head>
+<body>
+<main class="wrap">
+
+<header class="head">
+  <div>
+    <p class="eyebrow">RFC 3161 timestamp capacity test</p>
+    <h1>{{.Summary.Metadata.Provider.Name}}</h1>
+    <p class="sub">{{.Summary.Metadata.Provider.Endpoint}}</p>
+  </div>
+  <div class="badges">
+    {{if eq .Summary.Metadata.Provider.Environment "live"}}
+      <span class="badge badge-live">LIVE PRODUCTION</span>
+    {{else}}
+      <span class="badge">TEST ENVIRONMENT</span>
+    {{end}}
+    {{if .Summary.Partial}}<span class="badge badge-warn">PARTIAL RUN</span>{{end}}
+    {{if .Summary.Metadata.TLSConfig.InsecureSkipVerify}}<span class="badge badge-danger">TLS VERIFICATION DISABLED</span>{{end}}
+  </div>
+</header>
+
+{{if .Summary.Metadata.Warnings}}
+<section class="callout callout-warn">
+  <h2>Warnings</h2>
+  <ul>{{range .Summary.Metadata.Warnings}}<li>{{.}}</li>{{end}}</ul>
+</section>
+{{end}}
+
+<section class="kpis">
+  <div class="kpi"><span class="kpi-label">Achieved send rate</span><span class="kpi-value">{{pct2 .Summary.Overall.ActualSendTPS}}<small> TPS</small></span></div>
+  <div class="kpi"><span class="kpi-label">Success rate</span><span class="kpi-value {{rateClass .Summary.Overall.SuccessRate}}">{{pct .Summary.Overall.SuccessRate}}</span></div>
+  <div class="kpi"><span class="kpi-label">Timeout rate</span><span class="kpi-value">{{pct .Summary.Overall.TimeoutRate}}</span></div>
+  <div class="kpi"><span class="kpi-label">p95 latency</span><span class="kpi-value">{{ms2 .Summary.Overall.Latency.P95MS}}<small> ms</small></span></div>
+  <div class="kpi"><span class="kpi-label">p99 latency</span><span class="kpi-value">{{ms2 .Summary.Overall.Latency.P99MS}}<small> ms</small></span></div>
+  <div class="kpi"><span class="kpi-label">Quota used</span><span class="kpi-value">{{.Summary.QuotaUsed}}<small> / {{.Summary.QuotaBudget}}</small></span></div>
+</section>
+
+<section class="card">
+  <h2>Run</h2>
+  <dl class="grid">
+    <div><dt>Run ID</dt><dd class="mono">{{.Summary.Metadata.RunID}}</dd></div>
+    <div><dt>Started (UTC)</dt><dd class="mono">{{utc .Summary.Metadata.StartedAt}}</dd></div>
+    <div><dt>Ended (UTC)</dt><dd class="mono">{{utc .Summary.Metadata.EndedAt}}</dd></div>
+    <div><dt>Duration</dt><dd>{{secs .Summary.DurationS}}</dd></div>
+    <div><dt>Profile</dt><dd>{{.Summary.Metadata.ProfileName}}</dd></div>
+    <div><dt>Stop reason</dt><dd><span class="mono">{{.Summary.StopReason}}</span>{{if .Summary.StopDetail}} — {{.Summary.StopDetail}}{{end}}</dd></div>
+    <div><dt>Auth type</dt><dd class="mono">{{.Summary.Metadata.Provider.AuthType}}</dd></div>
+    <div><dt>Hash / payload</dt><dd class="mono">{{.Summary.Metadata.RequestConfig.HashAlgorithm}} / {{.Summary.Metadata.RequestConfig.PayloadSize}} B</dd></div>
+    <div><dt>TSA trust anchor</dt><dd class="mono">{{.Summary.Metadata.TLSConfig.TSATrustSource}}</dd></div>
+    <div><dt>Max concurrency</dt><dd>{{.Summary.Metadata.LoadConfig.MaxConcurrency}}</dd></div>
+    <div><dt>Retries</dt><dd>{{.Summary.Metadata.QuotaConfig.Retries}}</dd></div>
+    <div><dt>Tool</dt><dd class="mono">{{.Summary.Metadata.Tool}} {{.Summary.Metadata.Version}} ({{.Summary.Metadata.OS}}/{{.Summary.Metadata.Arch}})</dd></div>
+  </dl>
+</section>
+
+<section class="card">
+  <h2>Was the client the bottleneck?</h2>
+  {{if .Summary.ClientBottleneck}}
+    <p class="verdict verdict-warn">Yes — the load generator itself showed strain. Treat the numbers below as a lower bound on the provider's capacity.</p>
+    <p class="detail">{{.Summary.ClientBottleneckWhy}}</p>
+  {{else}}
+    <p class="verdict verdict-ok">No client-side saturation was detected. The scheduler held its target arrival rate and the client stayed within its resource limits.</p>
+  {{end}}
+  <dl class="grid">
+    <div><dt>Client bottleneck</dt><dd>{{if .Summary.ClientBottleneck}}<span class="bad">yes</span>{{else}}<span class="good">no</span>{{end}}</dd></div>
+    <div><dt>Client saturation events</dt><dd>{{.Summary.Overall.SaturationEvents}}</dd></div>
+    <div><dt>Schedule lag p99</dt><dd>{{ms2 .Summary.Overall.ScheduleLag.P99MS}} ms</dd></div>
+    <div><dt>Schedule lag max</dt><dd>{{ms2 .Summary.Overall.ScheduleLag.MaxMS}} ms</dd></div>
+    <div><dt>Peak CPU</dt><dd>{{pct1 .Summary.Resources.MaxCPUPercent}}%</dd></div>
+    <div><dt>Peak RSS</dt><dd>{{pct1 .Summary.Resources.MaxRSSMB}} MB</dd></div>
+    <div><dt>Peak goroutines</dt><dd>{{.Summary.Resources.MaxGoroutines}}</dd></div>
+    <div><dt>Peak in-flight</dt><dd>{{.Summary.Resources.MaxInFlight}}</dd></div>
+    <div><dt>Peak open connections</dt><dd>{{.Summary.Resources.MaxConnsOpen}}</dd></div>
+  </dl>
+</section>
+
+{{if .Chart.HasData}}
+<section class="card">
+  <h2>Throughput and error rate over time</h2>
+  {{template "chart" .Chart}}
+  <p class="detail">Completed requests per second (line) against the share of failed requests in that second (area).</p>
+</section>
+{{end}}
+
+<section class="card">
+  <h2>Stages</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr>
+      <th>Stage</th><th class="n">Target TPS</th><th class="n">Actual TPS</th>
+      <th class="n">Planned</th><th class="n">Sent</th><th class="n">Verified</th><th class="n">Failed</th>
+      <th class="n">Success</th><th class="n">Timeouts</th>
+      <th class="n">min</th><th class="n">mean</th><th class="n">p95</th><th class="n">p99</th><th class="n">max</th>
+    </tr></thead>
+    <tbody>
+    {{range .Summary.Stages}}
+      <tr>
+        <td>{{.Name}}</td>
+        <td class="n">{{if gt .TargetTPS 0.0}}{{pct2 .TargetTPS}}{{else}}—{{end}}</td>
+        <td class="n">{{pct2 .ActualSendTPS}}</td>
+        <td class="n">{{.Planned}}</td>
+        <td class="n">{{.Sent}}</td>
+        <td class="n">{{.Verified}}</td>
+        <td class="n">{{.Failed}}</td>
+        <td class="n {{rateClass .SuccessRate}}">{{pct .SuccessRate}}</td>
+        <td class="n">{{pct .TimeoutRate}}</td>
+        <td class="n">{{ms2 .Latency.MinMS}}</td>
+        <td class="n">{{ms2 .Latency.MeanMS}}</td>
+        <td class="n">{{ms2 .Latency.P95MS}}</td>
+        <td class="n">{{ms2 .Latency.P99MS}}</td>
+        <td class="n">{{ms2 .Latency.MaxMS}}</td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+  <p class="detail">Latency values are milliseconds and cover the full cycle: HTTP round trip plus RFC 3161 verification.</p>
+</section>
+
+<section class="card">
+  <h2>Latency breakdown (overall)</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Measurement</th><th class="n">count</th><th class="n">min</th><th class="n">mean</th><th class="n">p50</th><th class="n">p90</th><th class="n">p95</th><th class="n">p99</th><th class="n">max</th></tr></thead>
+    <tbody>
+      {{template "latencyRow" dict "Label" "End to end" "L" .Summary.Overall.Latency}}
+      {{template "latencyRow" dict "Label" "Network round trip" "L" .Summary.Overall.NetworkLatency}}
+      {{template "latencyRow" dict "Label" "RFC 3161 / CMS verification" "L" .Summary.Overall.VerifyLatency}}
+      {{template "latencyRow" dict "Label" "Schedule lag" "L" .Summary.Overall.ScheduleLag}}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Error distribution</h2>
+  {{if .Summary.Overall.Errors}}
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Class</th><th class="n">Count</th><th class="n">Share</th><th>Distribution</th></tr></thead>
+    <tbody>
+    {{range .Summary.Overall.Errors}}
+      <tr>
+        <td class="mono">{{.Class}}</td>
+        <td class="n">{{.Count}}</td>
+        <td class="n">{{pct .Share}}</td>
+        <td><span class="bar" style="width:{{barWidth .Share}}%"></span></td>
+      </tr>
+    {{end}}
+    </tbody>
+  </table>
+  </div>
+  {{else}}<p class="detail">No attempts were recorded.</p>{{end}}
+  <p class="detail">A transaction counts as verified only when the HTTP status, content type, PKIStatus, nonce,
+  message imprint, CMS signature, certificate chain, timeStamping key usage and genTime skew checks all pass.
+  An HTTP 200 alone is never treated as success.</p>
+</section>
+
+<section class="card">
+  <h2>How to read this</h2>
+  <ul class="notes">
+    {{range .Summary.Notes}}<li>{{.}}</li>{{end}}
+  </ul>
+  <h3>Limitations</h3>
+  <ul class="notes">
+    {{range .Summary.Limitations}}<li>{{.}}</li>{{end}}
+  </ul>
+</section>
+
+<footer class="foot">
+  <p>Generated by {{.Summary.Metadata.Tool}} {{.Summary.Metadata.Version}} on {{utc .Generated}}.
+  Machine-readable results: <span class="mono">summary.json</span>, <span class="mono">requests.csv</span>,
+  <span class="mono">timeseries.csv</span>, <span class="mono">errors.csv</span>.</p>
+</footer>
+
+</main>
+</body>
+</html>

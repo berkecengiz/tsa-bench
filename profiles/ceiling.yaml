@@ -1,0 +1,57 @@
+# Capacity ceiling search.
+#
+# The 50k profile answers "does the service hold 150 TPS". This one answers
+# "where does it stop holding", by stepping the rate and keeping every step
+# long enough for queueing to show itself.
+#
+#   step-50    50 TPS x 30 s =  1,500
+#   step-75    75 TPS x 30 s =  2,250
+#   step-100  100 TPS x 30 s =  3,000
+#   step-125  125 TPS x 30 s =  3,750
+#   step-150  150 TPS x 30 s =  4,500
+#                              ------
+#   planned                    15,000
+#
+# Reading it: compare p95 across steps, not the success rate. A service at its
+# limit usually keeps answering, just slowly, and the latency curve bends long
+# before anything fails. The step where p95 leaves its baseline is the ceiling.
+#
+# This profile is only meaningful when the *client* is never the constraint.
+# load.max_concurrency must exceed rate x latency at the worst step: at 150 TPS
+# against a 10 s request timeout that is 1,500 in flight. Run it with a
+# configuration whose max_concurrency is at least 1,600, and check that
+# client_saturation_events is 0 for every step before trusting any of it. A
+# step with saturation events measured the client, not the provider.
+name: ceiling
+note: >-
+  Rate ladder to locate the point where a provider's latency leaves its
+  baseline. 15,000 requests, no reserve; intended for an allowance that can
+  absorb it.
+
+reserve: 0
+
+stages:
+  - name: step-50
+    mode: rate
+    tps: 50
+    duration: 30s
+
+  - name: step-75
+    mode: rate
+    tps: 75
+    duration: 30s
+
+  - name: step-100
+    mode: rate
+    tps: 100
+    duration: 30s
+
+  - name: step-125
+    mode: rate
+    tps: 125
+    duration: 30s
+
+  - name: step-150
+    mode: rate
+    tps: 150
+    duration: 30s

@@ -1,0 +1,20 @@
+# Minimal profile for verifying the tool itself against the local mock.
+# Not for use against a provider.
+name: smoke
+note: Local smoke test against the mock responder. Consumes 160 requests.
+reserve: 0
+
+stages:
+  - name: functional
+    mode: sequential
+    count: 10
+
+  - name: ramp-25
+    mode: rate
+    tps: 25
+    duration: 2s
+
+  - name: sustained-100
+    mode: rate
+    tps: 100
+    duration: 1s

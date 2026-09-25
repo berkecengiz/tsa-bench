@@ -1,0 +1,163 @@
+{
+  "schema": "tsa-bench/v1",
+  "generated_at": "2026-03-14T12:00:00Z",
+  "entries": [
+    {
+      "provider": "Provider A",
+      "environment": "live",
+      "run_id": "0123456789ab",
+      "directory": "results/provider-a/run",
+      "started_at": "2026-03-14T09:00:00Z",
+      "duration_seconds": 400,
+      "peak_target_tps": 150,
+      "achieved_tps": 127.9,
+      "total_requests": 48600,
+      "verified_requests": 48550,
+      "failed_requests": 50,
+      "success_rate": 0.998971,
+      "timeout_rate": 0.000412,
+      "min_ms": 38,
+      "mean_ms": 60,
+      "p95_ms": 95,
+      "p99_ms": 146,
+      "max_ms": 902,
+      "client_bottleneck_observed": true,
+      "client_bottleneck_detail": "p99 schedule lag exceeded the configured threshold",
+      "partial": false,
+      "stop_reason": "completed",
+      "errors": [
+        {
+          "class": "ok",
+          "count": 48550,
+          "share": 0.998971
+        },
+        {
+          "class": "response_timeout",
+          "count": 20,
+          "share": 0.000412
+        },
+        {
+          "class": "http_5xx.503",
+          "count": 18,
+          "share": 0.00037
+        },
+        {
+          "class": "tsp_rejection.systemFailure",
+          "count": 12,
+          "share": 0.000247
+        }
+      ],
+      "sustained_stage": "sustained-150",
+      "sustained_seconds": 300,
+      "sustained_target_tps": 150
+    },
+    {
+      "provider": "Provider B",
+      "environment": "live",
+      "run_id": "0123456789ab",
+      "directory": "results/provider-b/run",
+      "started_at": "2026-03-14T09:00:00Z",
+      "duration_seconds": 400,
+      "peak_target_tps": 150,
+      "achieved_tps": 127.9,
+      "total_requests": 48600,
+      "verified_requests": 48550,
+      "failed_requests": 50,
+      "success_rate": 0.998971,
+      "timeout_rate": 0.000412,
+      "min_ms": 38,
+      "mean_ms": 60,
+      "p95_ms": 95,
+      "p99_ms": 146,
+      "max_ms": 902,
+      "client_bottleneck_observed": false,
+      "partial": false,
+      "stop_reason": "completed",
+      "errors": [
+        {
+          "class": "ok",
+          "count": 48550,
+          "share": 0.998971
+        },
+        {
+          "class": "response_timeout",
+          "count": 20,
+          "share": 0.000412
+        },
+        {
+          "class": "http_5xx.503",
+          "count": 18,
+          "share": 0.00037
+        },
+        {
+          "class": "tsp_rejection.systemFailure",
+          "count": 12,
+          "share": 0.000247
+        }
+      ],
+      "sustained_stage": "sustained-150",
+      "sustained_seconds": 300,
+      "sustained_target_tps": 150
+    },
+    {
+      "provider": "Provider C",
+      "environment": "live",
+      "run_id": "0123456789ab",
+      "directory": "results/provider-c/run",
+      "started_at": "2026-03-14T09:00:00Z",
+      "duration_seconds": 400,
+      "peak_target_tps": 150,
+      "achieved_tps": 127.9,
+      "total_requests": 48600,
+      "verified_requests": 48550,
+      "failed_requests": 50,
+      "success_rate": 0.998971,
+      "timeout_rate": 0.000412,
+      "min_ms": 38,
+      "mean_ms": 60,
+      "p95_ms": 95,
+      "p99_ms": 146,
+      "max_ms": 902,
+      "client_bottleneck_observed": false,
+      "partial": false,
+      "stop_reason": "completed",
+      "errors": [
+        {
+          "class": "ok",
+          "count": 48550,
+          "share": 0.998971
+        },
+        {
+          "class": "response_timeout",
+          "count": 20,
+          "share": 0.000412
+        },
+        {
+          "class": "http_5xx.503",
+          "count": 18,
+          "share": 0.00037
+        },
+        {
+          "class": "tsp_rejection.systemFailure",
+          "count": 12,
+          "share": 0.000247
+        }
+      ],
+      "sustained_stage": "sustained-150",
+      "sustained_seconds": 300,
+      "sustained_target_tps": 150
+    }
+  ],
+  "notes": [
+    "Percentiles come from a fixed-size HDR-style histogram with 3 significant figures: each reported value is the upper bound of a bucket at most 1/2048 (about 0.05%) wide. Minimum, maximum and mean are exact.",
+    "Requests are issued on an open-loop constant-arrival-rate schedule: request n is due at start + n/rate regardless of when request n-1 finished. This avoids coordinated omission, where a closed-loop client stops issuing requests while the server is slow and so never measures the latency its own backlog would have seen. Any inability to hold the schedule is reported as schedule lag and client saturation rather than being absorbed into a quietly lower rate.",
+    "Providers must be tested sequentially, not concurrently, and from the same host and network egress. Runs made under different conditions are not comparable."
+  ],
+  "limitations": [
+    "Each figure describes one bounded test window at a fixed target rate; it is not a guarantee of sustained production capacity.",
+    "Where a run is marked as client-bottlenecked, that provider's figures are a lower bound on its capacity, not a measurement of it.",
+    "Success requires the full RFC 3161 acceptance chain to pass, so these success rates are stricter than an HTTP-level availability figure.",
+    "At least one run targeted a live production service shared with real customer traffic; concurrent third-party load is an uncontrolled variable."
+  ],
+  "any_live_environment": true
+}

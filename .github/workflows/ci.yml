@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Build the same pure-static binary CI ships. The race job overrides this to
+  # 1, because the race detector is built on cgo.
+  #
+  # Separately, and enforced by the tests themselves rather than by any
+  # variable here: no job in this workflow may contact a timestamp provider.
+  # Everything is exercised against the in-process mock responder on loopback.
+  CGO_ENABLED: "0"
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27'
+          check-latest: true
+
+      - name: gofmt
+        run: make fmt-check
+
+      - name: go vet
+        run: make vet
+
+      # The quota counter and the metrics collector are concurrent; this is the
+      # test that must never be allowed to go red.
+      - name: go test -race
+        run: make race
+
+      # Not `make check`: the capacity target measures the machine it runs on,
+      # and a shared CI runner makes that number meaningless.
+      - name: smoke test (local mock only)
+        run: make smoke
+
+  lint:
+    name: staticcheck + govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27'
+          check-latest: true
+
+      - name: staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+      - name: govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+  probe:
+    name: build challenge-probe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27'
+          check-latest: true
+      # Separate module, so `./...` from the root never covers it.
+      - run: gofmt -l . && go vet ./... && go build ./...
+        working-directory: scripts/challenge-probe
